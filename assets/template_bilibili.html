@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=630">
+<title>Bilibili Dynamic Card - Bilibili</title>
+<style>
+    :root{
+        --bili-blue:#00a1d6; --bili-pink:#fb7299; --ink:#18191c; --sub:#9499a0; --line:#eef1f4;
+        --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei","Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji";
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;padding:20px;font-family:var(--font);background:#eef3f7;}
+    .card{width:600px;max-width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 26px rgba(0,120,180,.14);}
+    .brand-bar{height:54px;display:flex;align-items:center;gap:11px;padding:0 24px;background:linear-gradient(90deg,#00a1d6,#1cb6ea 52%,#fb7299);}
+    .tv{position:relative;width:36px;height:25px;background:#fff;border-radius:7px;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.12);}
+    .tv::before,.tv::after{content:"";position:absolute;top:-10px;width:12px;height:3px;background:#fff;border-radius:3px;}
+    .tv::before{left:7px;transform:rotate(44deg);transform-origin:left center;}
+    .tv::after{right:7px;transform:rotate(-44deg);transform-origin:right center;}
+    .tv i{position:absolute;top:8px;width:5px;height:5px;border-radius:50%;background:#00a1d6;}
+    .tv i.l{left:9px;} .tv i.r{right:9px;}
+    .brand-word{color:#fff;font-weight:800;font-size:20px;letter-spacing:.5px;}
+    .card-header{padding:18px 24px 12px;display:flex;align-items:center;justify-content:space-between;}
+    .user-info{display:flex;align-items:center;flex:1;overflow:hidden;}
+    .avatar-wrapper{position:relative;width:50px;height:50px;margin-right:12px;flex-shrink:0;}
+    .avatar{width:100%;height:100%;border-radius:50%;object-fit:cover;border:2px solid var(--bili-blue);}
+    .pendant{position:absolute;top:-20%;left:-20%;width:140%;height:140%;pointer-events:none;z-index:2;}
+    .user-details{display:flex;flex-direction:column;overflow:hidden;}
+    .username{font-size:17px;font-weight:700;color:var(--bili-pink);line-height:1.2;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .meta-info{display:flex;align-items:center;gap:8px;}
+    .dynamic-label{background:var(--bili-blue);color:#fff;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;}
+    .qrcode{width:64px;height:64px;object-fit:contain;border-radius:8px;flex-shrink:0;margin-left:16px;border:2px solid #eef3f7;}
+    .card-content{padding:4px 24px 22px;font-size:15px;line-height:1.65;color:var(--ink);}
+    .content-title{font-size:17px;font-weight:700;margin-bottom:8px;line-height:1.4;}
+    .text-content{white-space:pre-wrap;word-break:break-word;margin-bottom:12px;}
+    .text-content a{color:var(--bili-blue);text-decoration:none;}
+    .text-content img{height:1.4em;vertical-align:text-bottom;margin:0 2px;}
+    .forward-card{background:#f4f8fb;border-left:4px solid var(--bili-blue);border-radius:10px;padding:12px 16px;margin-top:10px;}
+    .forward-header{display:flex;align-items:center;margin-bottom:8px;}
+    .forward-avatar{width:24px;height:24px;border-radius:50%;margin-right:8px;}
+    .forward-name{font-size:14px;font-weight:600;color:var(--bili-blue);}
+    .forward-content{font-size:14px;color:var(--sub);line-height:1.5;}
+    .image-grid { display:grid; gap:6px; border-radius:10px; overflow:hidden; margin-top:10px; }
+    .image-grid img { width:100%; height:100%; object-fit:cover; display:block; border-radius:6px; aspect-ratio:1; background:#eef0f2; }
+    .grid-1 { grid-template-columns:1fr; }
+    .grid-1 img { max-height:360px; object-fit:contain; aspect-ratio:auto; background:transparent; }
+    .grid-2,.grid-4 { grid-template-columns:repeat(2,1fr); }
+    .grid-3,.grid-5,.grid-6,.grid-7,.grid-8,.grid-9 { grid-template-columns:repeat(3,1fr); }
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="brand-bar">
+        <div class="tv"><i class="l"></i><i class="r"></i></div>
+        <span class="brand-word">bilibili</span>
+    </div>
+    <div class="card-header">
+        <div class="user-info">
+            <div class="avatar-wrapper">
+                <img src="{{ avatar }}" class="avatar" alt="">
+                {% if pendant %}
+                <img src="{{ pendant }}" class="pendant" alt="">
+                {% endif %}
+            </div>
+            <div class="user-details">
+                <div class="username">{{ name | default('AstrBot') }}</div>
+                <div class="meta-info">
+                    <span class="dynamic-label">{% if type == "LIVE_ON" %}🔴 直播中
+                        {% elif type == "LIVE_OFF" %}直播结束
+                        {% elif type == "DYNAMIC_TYPE_AV" %}投稿视频
+                        {% elif type == "DYNAMIC_TYPE_ARTICLE" %}专栏文章
+                        {% elif type == "DYNAMIC_TYPE_FORWARD" %}转发动态
+                        {% elif type == "DYNAMIC_TYPE_DRAW" %}图文动态
+                        {% elif type == "DYNAMIC_TYPE_WORD" %}动态更新
+                        {% else %}动态更新{% endif %}</span>
+                </div>
+            </div>
+        </div>
+        {% if qrcode %}
+        <img src="{{ qrcode }}" class="qrcode" alt="">
+        {% endif %}
+    </div>
+    <div class="card-content">
+        {% if title and type != "DYNAMIC_TYPE_FORWARD" %}
+        <div class="content-title">{{ title }}</div>
+        {% endif %}
+
+        <div class="text-content">{{ text | default('') | safe }}</div>
+
+        {% if forward and forward.name %}
+        <div class="forward-card">
+            <div class="forward-header">
+                {% if forward.avatar %}
+                <img src="{{ forward.avatar }}" class="forward-avatar" alt="">
+                {% endif %}
+                <span class="forward-name">{{ forward.name }}</span>
+            </div>
+            <div class="forward-content">
+                {% if forward.title %}
+                <div class="content-title" style="font-size:14px;margin-bottom:4px;">{{ forward.title }}</div>
+                {% endif %}
+                <div class="text-content" style="margin-bottom:8px;">{{ forward.text | safe }}</div>
+                {% if forward.image_urls %}
+                <div class="image-grid grid-{{ forward.image_urls | length }}">
+                    {% for img in forward.image_urls %}
+                    <img src="{{ img }}" alt="">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if image_urls and not forward %}
+        <div class="image-grid grid-{{ image_urls | length }}">
+            {% for img in image_urls %}
+            <img src="{{ img }}" alt="">
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

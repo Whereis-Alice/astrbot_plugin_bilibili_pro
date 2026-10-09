@@ -1,0 +1,13 @@
+__pycache__
+.vscode
+tests
+docs/
+# dev / preview temp artifacts
+_logo/
+_render_out/
+_shots/
+_sample_av.json
+_sample_live.json
+_render.py
+_validate_tmpl.py
+*.pyc
