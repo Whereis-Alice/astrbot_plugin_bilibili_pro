@@ -86,7 +86,7 @@ class SubscriptionNotificationDispatcher:
         if notification.send_node:
             qq_node = Node(
                 uin=0,
-                name="AstrBot",
+                name="爱丽丝",
                 content=notification.chain_parts,
             )
             return MessageEventResult(chain=[qq_node])

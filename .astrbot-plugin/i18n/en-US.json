@@ -44,6 +44,10 @@
       "hint": "Select the rendering style for dynamic/live push cards.",
       "labels": ["Classic", "Bili-Pink", "Simple", "Bilibili", "Kirby", "Dark", "Sakura"]
     },
+    "card_border": {
+      "description": "Card Border",
+      "hint": "Show the card outline and outer spacing. Disable to remove the outer background, spacing and outline while keeping rounded corners. Disabled by default."
+    },
     "node": {
       "description": "Forward Message Mode",
       "hint": "When enabled, dynamics are sent as forward messages (nodes), suitable for platforms like QQ that support forwarded messages."

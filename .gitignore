@@ -1,6 +1,6 @@
 __pycache__
 .vscode
-tests
+.pytest_cache/
 docs/
 # dev / preview temp artifacts
 _logo/

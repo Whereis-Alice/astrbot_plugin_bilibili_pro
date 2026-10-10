@@ -394,7 +394,7 @@ class DynamicListener:
         category: NotificationCategory = "dynamic",
         dyn_id: Optional[str] = None,
         summary_payload: Optional[Any] = None,
-    ):
+    ) -> bool:
         notification = SubscriptionNotification(
             sub_user=sub_user,
             chain_parts=chain_parts,
@@ -403,9 +403,9 @@ class DynamicListener:
             dyn_id=dyn_id,
         )
         dispatch_result = await self.dispatcher.publish(notification)
-        if category != "dynamic" or not dispatch_result.sent or summary_payload is None:
-            return
-        await self._send_ai_summary(sub_user, summary_payload, dyn_id)
+        if category == "dynamic" and dispatch_result.sent and summary_payload is not None:
+            await self._send_ai_summary(sub_user, summary_payload, dyn_id)
+        return dispatch_result.sent
 
     def _build_analysis_lines(self, payload: Any, nested: bool = False) -> List[str]:
         lines = list(
@@ -870,7 +870,7 @@ class DynamicListener:
         link = f"https://live.bilibili.com/{room_id}"
         return RenderPayload(
             banner=image_to_base64(BANNER_PATH),
-            name="AstrBot",
+            name="爱丽丝",
             avatar=image_to_base64(self.logo_path_provider()),
             title=str(live_room.get("title", "Unknown") or "Unknown"),
             url=link,
@@ -886,15 +886,14 @@ class DynamicListener:
         sub_data: SubscriptionRecord,
         permit_atall: bool,
         is_offline: bool = False,
-    ) -> None:
+    ) -> bool:
         if not self.rai:
             ls = self._compose_plain_push(payload, category="live")
             if not is_offline:
                 ls = self._add_at_components(
                     list(ls), sub_data, is_live=True, permit_atall=permit_atall
                 )
-            await self._send_dynamic(sub_user, ls, category="live")
-            return
+            return await self._send_dynamic(sub_user, ls, category="live")
         img_path = await self.renderer.render_dynamic(payload)
         if img_path:
             platform_name = self._resolve_platform_name(sub_user)
@@ -914,14 +913,13 @@ class DynamicListener:
                 image_chain = self._add_at_components(
                     image_chain, sub_data, is_live=True, permit_atall=permit_atall
                 )
-            await self._send_dynamic(sub_user, image_chain, category="live")
-            return
+            return await self._send_dynamic(sub_user, image_chain, category="live")
         ls = self._compose_plain_push(payload, render_fail=True, category="live")
         if not is_offline:
             ls = self._add_at_components(
                 list(ls), sub_data, is_live=True, permit_atall=permit_atall
             )
-        await self._send_dynamic(sub_user, ls, category="live")
+        return await self._send_dynamic(sub_user, ls, category="live")
 
     async def _check_atall_permission(self, sub_user: str, enabled: bool) -> bool:
         if not enabled:
@@ -1014,7 +1012,6 @@ class DynamicListener:
             live_extra = self._build_live_extra_text(live_room)
             if live_extra:
                 text += live_extra
-            await self.data_manager.update_live_status(sub_user, sub_data.uid, True)
         if is_live_ended:
             cached_live_start_ts = int(sub_data.last_live_start_ts or 0)
             live_start_ts = max(current_live_start_ts, cached_live_start_ts)
@@ -1029,9 +1026,9 @@ class DynamicListener:
                 )
             else:
                 text = f"📣 你订阅的UP 「{user_name}」 下播了！"
-            sub_data.last_live_start_ts = 0
-            await self.data_manager.update_live_status(sub_user, sub_data.uid, False)
             if "live_end" in sub_data.filter_types:
+                sub_data.last_live_start_ts = 0
+                await self.data_manager.update_live_status(sub_user, sub_data.uid, False)
                 return
         if text:
             payload = self._build_live_payload(live_room, text)
@@ -1040,12 +1037,28 @@ class DynamicListener:
                 sub_user,
                 bool(sub_data.live_atall or sub_data.at_all) and is_live_started,
             )
-            await self._send_live_payload(
+            sent = await self._send_live_payload(
                 sub_user, payload, sub_data, with_atall, is_offline=is_live_ended
             )
+            # Only acknowledge the transition after delivery, so a failed send can retry.
+            if sent:
+                if is_live_ended:
+                    sub_data.last_live_start_ts = 0
+                await self.data_manager.update_live_status(sub_user, sub_data.uid, is_live_now)
 
-    def _get_dynamic_items(self, dyn: Dict[str, Any], data: SubscriptionRecord):
-        """获取动态条目列表。"""
+    def _get_dynamic_items(
+        self,
+        dyn: Dict[str, Any],
+        data: SubscriptionRecord,
+        ignore_seen: bool = False,
+        include_pinned: bool = False,
+    ):
+        """获取动态条目列表。
+
+        默认只返回「比上次记录更新」且非置顶的动态（与真实推送一致）。
+        ignore_seen=True 时忽略已读缓存，返回全部动态（供测试命令使用）；
+        include_pinned=True 时一并保留置顶动态。
+        """
         last = data.last
         items = dyn["items"]
         recent_ids = data.recent_ids
@@ -1057,12 +1070,13 @@ class DynamicListener:
                 continue
             # 过滤置顶
             if (
-                item["modules"].get("module_tag")
+                not include_pinned
+                and item["modules"].get("module_tag")
                 and item["modules"]["module_tag"].get("text") == "置顶"
             ):
                 continue
 
-            if item["id_str"] in known_ids:
+            if item["id_str"] in known_ids and not ignore_seen:
                 break
             new_items.append(item)
 
@@ -1087,15 +1101,23 @@ class DynamicListener:
         return False
 
     def _parse_and_filter_dynamics(
-        self, dyn: Dict[str, Any], data: SubscriptionRecord
+        self,
+        dyn: Dict[str, Any],
+        data: SubscriptionRecord,
+        ignore_seen: bool = False,
+        include_pinned: bool = False,
     ) -> List[DynamicParseResult]:
         """
         解析并过滤动态。
+
+        ignore_seen / include_pinned 透传给 _get_dynamic_items，默认行为不变。
         """
         filter_types = data.filter_types
         filter_regex = data.filter_regex
         uid = str(data.uid)
-        items = self._get_dynamic_items(dyn, data)  # 不含last及置顶的动态列表
+        items = self._get_dynamic_items(
+            dyn, data, ignore_seen=ignore_seen, include_pinned=include_pinned
+        )  # 默认不含 last 及置顶
         result_list: List[DynamicParseResult] = []
         if not items:
             return result_list

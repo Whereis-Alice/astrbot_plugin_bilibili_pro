@@ -255,6 +255,12 @@
         border-radius: 12px;
         text-decoration: none;
     }
+{% if show_border %}
+.card { outline: 1px solid #e3e5e7; }
+{% else %}
+body { padding: 0; background: transparent; min-height: 0; }
+.card { margin: 0; border: none !important; }
+{% endif %}
 </style>
 </head>
 <body>
@@ -270,7 +276,7 @@
                 {% endif %}
             </div>
             <div class="user-details">
-                <div class="username">{{ name | default('AstrBot') }}</div>
+                <div class="username">{{ name | default('爱丽丝') }}</div>
                 <div class="meta-info">
                     <span class="dynamic-label">
                         {% if type == "LIVE_ON" %}直播中

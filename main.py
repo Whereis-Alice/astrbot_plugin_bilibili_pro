@@ -64,7 +64,7 @@ from .tools.bili_hot_video import BiliSearchHotVideosTool
 from .tools.bili_user_dynamics import BiliUserDynamicsTool
 
 
-@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.1", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
+@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.2", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
 class Main(Star):
     def __init__(self, context: Context, config: AstrBotConfig) -> None:
         super().__init__(context)
@@ -485,7 +485,7 @@ class Main(Star):
         link = f"https://space.bilibili.com/{mid}"
         return RenderPayload(
             uid=str(uid),
-            name="AstrBot",
+            name="爱丽丝",
             avatar=image_to_base64(self.logo_service.get_active_path()),
             text=f"📣 订阅成功！<br>UP 主: {name} | 性别: {sex}{filter_desc}",
             image_urls=[avatar] if avatar else [],
@@ -715,7 +715,7 @@ class Main(Star):
             online = video_data["online"]
 
             payload = RenderPayload(
-                name="AstrBot",
+                name="爱丽丝",
                 avatar=image_to_base64(self.logo_service.get_active_path()),
                 title=info["title"],
                 text=(
@@ -1055,22 +1055,28 @@ class Main(Star):
         if not sub_data:
             sub_data = SubscriptionRecord(uid=uid_int)
 
-        result_list = self.dynamic_listener._parse_and_filter_dynamics(
-            dyn,
-            sub_data,
-        )
+        # 测试命令忽略已读缓存，优先渲染最新一条非置顶动态；
+        # 若该 UP 主最近只有置顶动态，则回退到包含置顶动态，保证测试有内容可渲染。
+        result_list = []
+        for include_pinned in (False, True):
+            result_list = self.dynamic_listener._parse_and_filter_dynamics(
+                dyn,
+                sub_data,
+                ignore_seen=True,
+                include_pinned=include_pinned,
+            )
+            if any(result.has_payload() for result in result_list or []):
+                break
 
         render_data: RenderPayload | None = None
-        # dyn_id = None
         for result in result_list or []:
             if result.has_payload():
                 render_data = result.payload
-                # dyn_id = result.dyn_id
                 break
 
         if not render_data:
             return MessageEventResult().message(
-                "没有可用于测试推送的动态（可能没有新动态、都被过滤掉，或动态类型暂不支持）。"
+                "该 UP 主最近没有可渲染的动态（可能动态类型暂不支持，或被你设置的过滤规则/正则排除了）。"
             )
 
         # 测试命令需要每次基于当前代码重新构造消息，避免命中同 dyn_id 的历史缓存。

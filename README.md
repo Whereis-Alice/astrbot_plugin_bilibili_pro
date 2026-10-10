@@ -9,7 +9,7 @@
 为 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 打造的全能哔哩哔哩插件，内置 7 款精美卡片皮肤。
 
 ![AstrBot](https://img.shields.io/badge/AstrBot-%E2%89%A5%204.26.0-00a1d6?style=flat-square)
-![version](https://img.shields.io/badge/version-v1.7.2--pro.1-fb7299?style=flat-square)
+![version](https://img.shields.io/badge/version-v1.7.2--pro.2-fb7299?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-4c9a2a?style=flat-square)
 
 </div>
@@ -57,7 +57,11 @@
 
 ## 🚀 安装
 
-**方式一：插件市场**（推荐）在 AstrBot WebUI 的插件市场搜索并安装。
+**方式一：通过仓库地址安装**（推荐）在 AstrBot WebUI 的插件管理页选择「通过链接安装」，填写：
+
+```text
+https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
+```
 
 **方式二：通过指令安装**
 
@@ -69,9 +73,10 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 
 ### 从原插件平滑升级
 
-1. 卸载原 `astrbot_plugin_bilibili` 插件。
+1. 备份原插件的订阅数据与配置，再卸载原 `astrbot_plugin_bilibili` 插件。卸载时保留原插件数据目录。
 2. 安装本插件 `astrbot_plugin_bilibili_pro`。
-3. 重载 / 启动插件即可。首次加载时会**自动迁移**原插件的订阅数据；由于指令与别名完全一致，无需任何额外改动。
+3. 启动本插件。首次加载时，如果旧订阅文件仍存在且本插件尚无数据文件，会**自动复制迁移**订阅与已保存的登录凭据，原文件不会被删除。
+4. 核对本插件的配置。原插件配置页中填写的 SESSDATA、代理、轮询周期等不会自动迁移，需要重新填写；可用 `/bili_sub_list` 检查订阅。
 
 ## ⚙️ 配置
 
@@ -81,6 +86,16 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 2. **扫码登录**（推荐）：管理员在私聊中发送 `/bili_login`，使用 Bilibili App 扫码即可自动获取并保存凭据。此方式更稳定，可缓解 412 问题。**不建议使用主账号登录。**
 
 其余配置项（轮询周期、代理、渲染模板、动态推送上限等）均可在插件配置页中按需调整。
+
+### 卡片外观
+
+| 配置项 | 默认值 | 说明 |
+| :--- | :--- | :--- |
+| `renderer_template` | `template_2` | 全局卡片皮肤，也可用 `/bili_card_style` 切换。 |
+| `card_border`（卡片外框） | 关闭 | 关闭时移除卡片外围留白、背景与描边，保留卡片圆角；开启时恢复带留白的外框效果。适用于全部 7 款皮肤。 |
+| `rai`（图片推送） | 开启 | 关闭后以纯文本发送动态和直播通知，外观设置不再影响推送。 |
+
+订阅成功、视频查询与直播通知使用的默认头像为**爱丽丝**，默认显示名也是**爱丽丝**；UP 主动态卡片仍显示动态作者的头像和名称。已有自定义头像会继续使用，可在订阅管理页点击「恢复默认」切回爱丽丝头像。修改配置后保存并重载插件，使外观设置生效。
 
 ## 📖 使用说明
 
@@ -96,7 +111,7 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 | `bili_sub` | `<UID> [过滤器...]` | 订阅指定 UP 主的动态与开播提醒，可追加多个过滤器（空格分隔）。 | `订阅动态` |
 | `bili_sub_list` | （无） | 显示当前会话的所有订阅。 | `订阅列表` |
 | `bili_sub_del` | `<UID>` | 删除当前会话对指定 UP 主的订阅。 | `订阅删除` |
-| `bili_sub_test` | `<UID>` | 测试获取动态与渲染（不保存订阅）。 | `订阅测试` |
+| `bili_sub_test` | `<UID>` | 获取最近可渲染的动态并发送测试卡片；忽略已推送缓存，不保存订阅。 | `订阅测试` |
 | `bili_card_style` | `[皮肤名]` | **[管理员]** 切换卡片皮肤；不带参数查看全部皮肤。 | `卡片样式` |
 | `bili_login` | （无） | **[管理员]** 私聊内扫码登录。 | （无） |
 | `bili_logout` | （无） | **[管理员]** 注销登录并删除本地凭据。 | （无） |
@@ -151,6 +166,14 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 ### 订阅管理页面
 
 AstrBot `>= 4.26.0` 可在 WebUI 的「插件详情 → 订阅管理」打开 Plugin Page，集中管理会话订阅，并支持上传自定义渲染头像（图片保存在插件数据目录，可随时恢复默认）。
+
+### 测试动态与直播提醒
+
+发送 `/bili_sub_test <UID>` 测试动态获取与渲染，例如 `/bili_sub_test 192360`。命令优先选择接口返回的最新非置顶动态；没有可用的非置顶动态时，再尝试置顶动态。已订阅时仍会应用该会话的类型和关键词过滤规则。
+
+测试命令**没有“最近一天”限制**，也不会因为某条动态已推送过而跳过它。正常后台推送会根据已记录的动态 ID 去重；测试不会推进这个记录。如果测试仍提示没有可渲染的动态，请检查账号是否公开发布了动态、过滤规则、当前动态类型以及登录凭据和 API 返回结果。
+
+直播提醒在订阅后自动轮询，无需额外命令。默认每个 UP 主约 5 分钟检查一次，多账号订阅还会受任务间隔影响。只有状态变为开播或下播时才通知，持续直播不会反复推送；发送失败时，下次轮询会重试仍未送达的状态变化。`live` 过滤开播和下播，`live_end` 仅过滤下播；下播不会触发 @提醒。`/bili_sub_test` 测试的是动态卡片，不会模拟开播通知。
 
 ## ❓ 常见问题
 

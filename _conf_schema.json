@@ -49,6 +49,12 @@
         "options": ["template_1", "template_2", "simple", "bilibili", "kirby", "dark", "sakura"],
         "default": "template_2"
     },
+    "card_border": {
+        "description": "card_border",
+        "type": "bool",
+        "hint": "是否显示卡片外框。关闭后移除外围留白、背景与描边，保留卡片圆角；开启后恢复带留白的外框效果。默认关闭。",
+        "default": false
+    },
     "node": {
         "description": "node",
         "type": "bool",

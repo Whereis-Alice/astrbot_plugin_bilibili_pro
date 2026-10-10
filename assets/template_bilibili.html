@@ -13,13 +13,9 @@
     body{margin:0;padding:20px;font-family:var(--font);background:#eef3f7;}
     .card{width:600px;max-width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 26px rgba(0,120,180,.14);}
     .brand-bar{height:54px;display:flex;align-items:center;gap:11px;padding:0 24px;background:linear-gradient(90deg,#00a1d6,#1cb6ea 52%,#fb7299);}
-    .tv{position:relative;width:36px;height:25px;background:#fff;border-radius:7px;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.12);}
-    .tv::before,.tv::after{content:"";position:absolute;top:-10px;width:12px;height:3px;background:#fff;border-radius:3px;}
-    .tv::before{left:7px;transform:rotate(44deg);transform-origin:left center;}
-    .tv::after{right:7px;transform:rotate(-44deg);transform-origin:right center;}
-    .tv i{position:absolute;top:8px;width:5px;height:5px;border-radius:50%;background:#00a1d6;}
-    .tv i.l{left:9px;} .tv i.r{right:9px;}
-    .brand-word{color:#fff;font-weight:800;font-size:20px;letter-spacing:.5px;}
+    .play{position:relative;width:34px;height:34px;background:#fff;border-radius:9px;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.12);}
+    .play::after{content:"";position:absolute;top:50%;left:54%;transform:translate(-50%,-50%);width:0;height:0;border-style:solid;border-width:7px 0 7px 12px;border-color:transparent transparent transparent #00a1d6;}
+    .brand-word{color:#fff;font-weight:800;font-size:20px;letter-spacing:0;}
     .card-header{padding:18px 24px 12px;display:flex;align-items:center;justify-content:space-between;}
     .user-info{display:flex;align-items:center;flex:1;overflow:hidden;}
     .avatar-wrapper{position:relative;width:50px;height:50px;margin-right:12px;flex-shrink:0;}
@@ -46,12 +42,18 @@
     .grid-1 img { max-height:360px; object-fit:contain; aspect-ratio:auto; background:transparent; }
     .grid-2,.grid-4 { grid-template-columns:repeat(2,1fr); }
     .grid-3,.grid-5,.grid-6,.grid-7,.grid-8,.grid-9 { grid-template-columns:repeat(3,1fr); }
+{% if show_border %}
+.card { outline: 1px solid #c7e5ef; }
+{% else %}
+body { padding: 0; background: transparent; min-height: 0; }
+.card { margin: 0; border: none !important; }
+{% endif %}
 </style>
 </head>
 <body>
 <div class="card">
     <div class="brand-bar">
-        <div class="tv"><i class="l"></i><i class="r"></i></div>
+        <div class="play"></div>
         <span class="brand-word">bilibili</span>
     </div>
     <div class="card-header">
@@ -63,7 +65,7 @@
                 {% endif %}
             </div>
             <div class="user-details">
-                <div class="username">{{ name | default('AstrBot') }}</div>
+                <div class="username">{{ name | default('爱丽丝') }}</div>
                 <div class="meta-info">
                     <span class="dynamic-label">{% if type == "LIVE_ON" %}🔴 直播中
                         {% elif type == "LIVE_OFF" %}直播结束

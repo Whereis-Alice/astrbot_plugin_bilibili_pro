@@ -343,9 +343,15 @@
                 padding: 8px 20px;
                 border-radius: 50px;
                 box-shadow: 0 2px 6px rgba(35, 173, 229, 0.15);
-                letter-spacing: 0.5px;
+                letter-spacing: 0;
             }
-        </style>
+        {% if show_border %}
+            .card { outline: 1px solid #ffd0df; }
+        {% else %}
+            body { padding: 0; background: transparent; min-height: 0; }
+            .card { margin: 0; border: none !important; }
+        {% endif %}
+</style>
     </head>
     <body>
         <div class="card">
@@ -373,7 +379,7 @@
                         <div class="user-info">
                             <div class="name-line">
                                 <span class="user-name"
-                                    >{{ name | default('AstrBot') }}</span
+                                    >{{ name | default('爱丽丝') }}</span
                                 >
                                 {% if uid %}
                                 <span class="uid-tag"
@@ -448,12 +454,6 @@
                     {% endif %}
                 </div>
                 {% endif %}
-            </div>
-
-            <div class="footer">
-                <div class="copyright-pill">
-                    Created By AstrBot Plugin Bilibili
-                </div>
             </div>
         </div>
     </body>

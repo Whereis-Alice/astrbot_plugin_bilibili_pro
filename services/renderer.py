@@ -77,6 +77,10 @@ class Renderer:
 
         tmpl = self.get_template(style)
         context = payload.to_template_context()
+        try:
+            context["show_border"] = bool(self.star.cfg.get("card_border", False))
+        except Exception:
+            context["show_border"] = False
 
         for attempt in range(1, MAX_ATTEMPTS + 1):
             render_output = None
