@@ -9,7 +9,7 @@
 为 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 打造的全能哔哩哔哩插件，内置 7 款精美卡片皮肤。
 
 ![AstrBot](https://img.shields.io/badge/AstrBot-%E2%89%A5%204.26.0-00a1d6?style=flat-square)
-![version](https://img.shields.io/badge/version-v1.7.2--pro.4-fb7299?style=flat-square)
+![version](https://img.shields.io/badge/version-v1.7.2--pro.5-fb7299?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-4c9a2a?style=flat-square)
 
 </div>
@@ -100,6 +100,8 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 订阅成功、视频查询与直播通知使用的默认头像为**爱丽丝**，默认显示名也是**爱丽丝**；UP 主动态卡片仍显示动态作者的头像和名称。已有自定义头像会继续使用，可在订阅管理页点击「恢复默认」切回爱丽丝头像。修改配置后保存并重载插件，使外观设置生效。
 
 默认外观为**无外围留白 + 保留描边 + 黑色角隙**，适用于全部 7 款皮肤。想恢复带粉色外围背景的卡比卡片，开启「卡片外围留白」即可。
+
+关闭「卡片外围留白」时，插件会自动移除渲染服务额外保留的底部空白，避免短动态或直播卡片下面出现大块黑底。仅处理卡片之外的尾部背景，保留卡片内容、描边和圆角角隙；开启外围留白时不裁剪。如果角隙颜色与卡片底色很接近，兼容裁剪会保守跳过，建议选择有明显区分的颜色。
 
 ## 📖 使用说明
 

@@ -64,7 +64,7 @@ from .tools.bili_hot_video import BiliSearchHotVideosTool
 from .tools.bili_user_dynamics import BiliUserDynamicsTool
 
 
-@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.4", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
+@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.5", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
 class Main(Star):
     def __init__(self, context: Context, config: AstrBotConfig) -> None:
         super().__init__(context)

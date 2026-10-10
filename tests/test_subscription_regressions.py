@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
@@ -201,3 +202,66 @@ def test_outline_is_independent_and_corner_color_is_validated(color, expected):
     assert asyncio.run(renderer.render_dynamic(RenderPayload())) == output
     assert star.html_render.await_args.kwargs["data"]["show_outline"] is False
     assert star.html_render.await_args.kwargs["data"]["corner_background"] == expected
+
+
+@pytest.mark.parametrize("frame", [False, True])
+def test_renderer_trims_old_service_minimum_height_only_without_spacing(tmp_path, frame):
+    source = tmp_path / "render.jpg"
+    image = Image.new("RGB", (1080, 1296), "black")
+    draw = ImageDraw.Draw(image)
+    draw.rounded_rectangle((0, 0, 1079, 1029), radius=54, fill="#ffdcee",
+                           outline="#ffc8e4", width=5)
+    image.save(source, quality=95)
+    before = source.read_bytes()
+    star = SimpleNamespace(cfg={"card_border": frame}, html_render=AsyncMock(return_value=str(source)))
+    renderer = Renderer(star, rai=True, style="kirby")
+    result = asyncio.run(renderer.render_dynamic(RenderPayload(name="爱丽丝")))
+    assert source.read_bytes() == before
+    assert star.html_render.await_count == 1
+    if frame:
+        assert result == str(source)
+    else:
+        assert result != str(source)
+        with Image.open(result) as cropped:
+            assert cropped.width == 1080 and 1030 <= cropped.height <= 1038
+
+
+def test_trimming_failure_keeps_successful_render_and_does_not_retry(tmp_path, monkeypatch):
+    from astrbot_plugin_bilibili_pro.services import renderer as renderer_module
+
+    output = str(Path(__file__).resolve().parents[1] / "assets" / "Astrbot.png")
+    star = SimpleNamespace(cfg={}, html_render=AsyncMock(return_value=output))
+    renderer = Renderer(star, rai=True, style="kirby")
+
+    def failed_trim(*args):
+        raise OSError("read-only output folder")
+
+    monkeypatch.setattr(renderer_module, "trim_card_bottom_padding", failed_trim)
+    assert asyncio.run(renderer.render_dynamic(RenderPayload())) == output
+    assert star.html_render.await_count == 1
+
+
+@pytest.mark.parametrize("category", ["dynamic", "live"])
+@pytest.mark.parametrize("extension", ["png", "jpg"])
+def test_file_fallback_keeps_rendered_image_extension(tmp_path, monkeypatch, category, extension):
+    from astrbot_plugin_bilibili_pro.services import listener as listener_module
+
+    output = tmp_path / ("render." + extension)
+    Image.new("RGB", (100, 100), "white").save(output)
+    record = SubscriptionRecord(uid=192360)
+    listener = make_listener(record)
+    listener.rai = True
+    listener.node = False
+    listener.renderer = SimpleNamespace(render_dynamic=AsyncMock(return_value=str(output)))
+    listener._resolve_platform_name = lambda session: "qq"
+    listener._add_at_components = lambda chain, *args, **kwargs: chain
+    listener._send_dynamic = AsyncMock(return_value=True)
+    monkeypatch.setattr(listener_module, "is_height_valid", lambda *args: False)
+    payload = RenderPayload(name="爱丽丝")
+    if category == "dynamic":
+        asyncio.run(DynamicListener._handle_new_dynamic(listener, "qq:GroupMessage:123", payload))
+    else:
+        asyncio.run(DynamicListener._send_live_payload(listener, "qq:GroupMessage:123", payload,
+                                                      record, False, is_offline=True))
+    component = listener._send_dynamic.await_args.args[1][0]
+    assert component.name.endswith("." + extension)

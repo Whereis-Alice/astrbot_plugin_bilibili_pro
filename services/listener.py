@@ -3,6 +3,7 @@ import re
 import time
 import traceback
 from collections import OrderedDict, defaultdict
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from astrbot.api import logger
@@ -696,7 +697,7 @@ class DynamicListener:
                 ls = [Image.fromFileSystem(img_path)]
             else:
                 timestamp = int(time.time())
-                filename = f"bilibili_dynamic_{timestamp}.jpg"
+                filename = f"bilibili_dynamic_{timestamp}{Path(img_path).suffix or '.jpg'}"
                 ls = [File(file=img_path, name=filename)]
             ls.append(Plain(f"\n{url}"))
             self._cache_render(dyn_id, ls, send_node_flag)
@@ -904,7 +905,7 @@ class DynamicListener:
                 ]
             else:
                 timestamp = int(time.time())
-                filename = f"bilibili_live_{timestamp}.jpg"
+                filename = f"bilibili_live_{timestamp}{Path(img_path).suffix or '.jpg'}"
                 image_chain = [
                     File(file=img_path, name=filename),
                     Plain(f"\n{payload.url}"),

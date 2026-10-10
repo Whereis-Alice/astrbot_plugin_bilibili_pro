@@ -38,6 +38,8 @@ DEFAULT_CFG = {
 # ==================== 模板注册表 ====================
 # 集中管理所有可用的卡片模板
 # 添加新模板只需在此处注册即可
+# surface_color 是卡片底部背景色（渐变取底部色），用于同色背景时保守跳过裁剪。
+# 修改模板背景时需同步此值，并运行 dev/check_card_templates.py。
 
 CARD_TEMPLATES: Dict[str, dict] = {
     "template_1": {
@@ -45,42 +47,49 @@ CARD_TEMPLATES: Dict[str, dict] = {
         "description": "原版设计",
         "file": "template_1.html",
         "path": _asset_path("template_1.html"),
+        "surface_color": "#ffffff",
     },
     "template_2": {
         "name": "B站粉风格",
         "description": "B站风格设计",
         "file": "template_2.html",
         "path": _asset_path("template_2.html"),
+        "surface_color": "#ffffff",
     },
     "simple": {
         "name": "简约风格",
         "description": "简洁现代的设计",
         "file": "template_simple.html",
         "path": _asset_path("template_simple.html"),
+        "surface_color": "#ffffff",
     },
     "bilibili": {
         "name": "哔哩哔哩风格",
         "description": "仿 B 站蓝粉主题，顶部品牌栏",
         "file": "template_bilibili.html",
         "path": _asset_path("template_bilibili.html"),
+        "surface_color": "#ffffff",
     },
     "kirby": {
         "name": "星之卡比风格",
         "description": "粉彩星星、圆润可爱的卡比主题",
         "file": "template_kirby.html",
         "path": _asset_path("template_kirby.html"),
+        "surface_color": "#ffdcee",
     },
     "dark": {
         "name": "暗夜霓虹",
         "description": "深色霓虹渐变，适合夜间",
         "file": "template_dark.html",
         "path": _asset_path("template_dark.html"),
+        "surface_color": "#1e2029",
     },
     "sakura": {
         "name": "樱花",
         "description": "柔和樱花粉，清新治愈",
         "file": "template_sakura.html",
         "path": _asset_path("template_sakura.html"),
+        "surface_color": "#fbe6ee",
     },
 }
 

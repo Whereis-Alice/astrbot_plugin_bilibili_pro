@@ -6,6 +6,7 @@ from typing import Any, Dict
 from astrbot.api import logger
 from astrbot.api.all import Star
 
+from ..core.card_image import trim_card_bottom_padding
 from ..core.constant import (
     BANNER_PATH,
     CARD_TEMPLATES,
@@ -66,7 +67,7 @@ class Renderer:
         将渲染数据字典渲染成最终图片。
         这是该类的主要入口方法。
         """
-        # options = {"full_page": True, "type": "png", "quality": None, "scale": "device"}
+        # 请求最小视口高度；兼容仍保留默认高度的服务，成功后另有尾部裁剪兜底。
         options = {
             "full_page": True,
             "viewport_height": 1,
@@ -91,10 +92,10 @@ class Renderer:
             else "#000000"
         )
 
+        target_style = style or self.style
+        if target_style not in self._templates:
+            target_style = DEFAULT_TEMPLATE
         if not context["show_border"]:
-            target_style = style or self.style
-            if target_style not in self._templates:
-                target_style = DEFAULT_TEMPLATE
             options["viewport_width"] = 680 if target_style == "template_1" else 600
 
         for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -112,6 +113,16 @@ class Renderer:
                     and os.path.getsize(render_output) > 4096
                     and self._validate_image(render_output)
                 ):
+                    if not context["show_border"]:
+                        try:
+                            return await asyncio.to_thread(
+                                trim_card_bottom_padding,
+                                render_output,
+                                context["corner_background"],
+                                CARD_TEMPLATES[target_style]["surface_color"],
+                            )
+                        except Exception as e:
+                            logger.warning(f"裁剪卡片底部空白失败，使用原图: {e}")
                     return render_output
             except Exception as e:
                 logger.error(f"渲染图片失败 (尝试次数: {attempt}): {e}")
