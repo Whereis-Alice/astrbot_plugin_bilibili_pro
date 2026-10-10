@@ -52,8 +52,20 @@
     "card_border": {
         "description": "card_border",
         "type": "bool",
-        "hint": "是否显示卡片外框。关闭后移除外围留白、背景与描边，保留卡片圆角；开启后恢复带留白的外框效果。默认关闭。",
+        "hint": "是否保留卡片外围留白和皮肤背景。默认关闭，截图紧贴卡片；描边由卡片描边开关独立控制。",
         "default": false
+    },
+    "card_outline": {
+        "description": "card_outline",
+        "type": "bool",
+        "hint": "是否显示皮肤原有的卡片描边，例如卡比皮肤的浅粉描边。默认开启，与外围留白开关独立。",
+        "default": true
+    },
+    "card_corner_background": {
+        "description": "card_corner_background",
+        "type": "string",
+        "hint": "无外围留白时，圆角外侧的背景颜色。默认黑色 #000000，可填 #FFFFFF 等六位十六进制颜色；无效值使用黑色。",
+        "default": "#000000"
     },
     "node": {
         "description": "node",

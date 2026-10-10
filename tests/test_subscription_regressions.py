@@ -182,7 +182,22 @@ def test_renderer_uses_card_width_when_frame_is_disabled(style, frame):
     assert asyncio.run(renderer.render_dynamic(RenderPayload(name="爱丽丝"))) == output
     call = star.html_render.await_args.kwargs
     assert call["data"]["show_border"] is frame
+    assert call["data"]["show_outline"] is True
+    assert call["data"]["corner_background"] == "#000000"
     if frame:
         assert "viewport_width" not in call["options"]
     else:
         assert call["options"]["viewport_width"] == (680 if style == "template_1" else 600)
+
+
+@pytest.mark.parametrize("color,expected", [("#FFFFFF", "#FFFFFF"), (" #112233 ", "#112233"),
+                                           ("red", "#000000"), ("#000; color: red", "#000000"),
+                                           (None, "#000000")])
+def test_outline_is_independent_and_corner_color_is_validated(color, expected):
+    output = str(Path(__file__).resolve().parents[1] / "assets" / "Astrbot.png")
+    star = SimpleNamespace(cfg={"card_border": False, "card_outline": False, "card_corner_background": color},
+                           html_render=AsyncMock(return_value=output))
+    renderer = Renderer(star, rai=True, style="kirby")
+    assert asyncio.run(renderer.render_dynamic(RenderPayload())) == output
+    assert star.html_render.await_args.kwargs["data"]["show_outline"] is False
+    assert star.html_render.await_args.kwargs["data"]["corner_background"] == expected

@@ -45,8 +45,16 @@
       "labels": ["Classic", "Bili-Pink", "Simple", "Bilibili", "Kirby", "Dark", "Sakura"]
     },
     "card_border": {
-      "description": "Card Border",
-      "hint": "Show the card outline and outer spacing. Disable to remove the outer background, spacing and outline while keeping rounded corners. Disabled by default."
+      "description": "Outer Card Spacing",
+      "hint": "Restore outer spacing and the skin background. Disabled by default. The card outline has its own setting."
+    },
+    "card_outline": {
+      "description": "Card Outline",
+      "hint": "Keep the skin's original outline, such as Kirby's pale pink border. Enabled by default without adding outer spacing."
+    },
+    "card_corner_background": {
+      "description": "Rounded Corner Background",
+      "hint": "Color outside rounded corners when outer spacing is disabled. Default: #000000 (black). Use a six-digit hex color such as #FFFFFF."
     },
     "node": {
       "description": "Forward Message Mode",

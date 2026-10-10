@@ -255,11 +255,12 @@
         border-radius: 12px;
         text-decoration: none;
     }
-{% if show_border %}
-.card { outline: 1px solid #e3e5e7; }
-{% else %}
-body { padding: 0; background: transparent; min-height: 0; }
-.card { margin: 0; border: none !important; }
+{% if show_outline | default(true) %}
+.card { border: 1px solid #e3e5e7; box-sizing: border-box; }
+{% endif %}
+{% if not show_border %}
+body { padding: 0; background: {{ corner_background | default('#000000', true) }}; min-height: 0; }
+.card { margin: 0; box-shadow: none; }
 {% endif %}
 </style>
 </head>

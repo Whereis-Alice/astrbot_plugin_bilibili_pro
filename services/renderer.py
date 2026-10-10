@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 from typing import Any, Dict
 
 from astrbot.api import logger
@@ -81,6 +82,14 @@ class Renderer:
             context["show_border"] = bool(self.star.cfg.get("card_border", False))
         except Exception:
             context["show_border"] = False
+
+        context["show_outline"] = bool(self.star.cfg.get("card_outline", True))
+        corner_background = str(self.star.cfg.get("card_corner_background", "#000000") or "").strip()
+        context["corner_background"] = (
+            corner_background
+            if re.fullmatch(r"#[0-9a-fA-F]{6}", corner_background)
+            else "#000000"
+        )
 
         if not context["show_border"]:
             target_style = style or self.style

@@ -1,4 +1,4 @@
-"""Render previews and verify the frame switch with local Chromium."""
+"""Check whole-page screenshots, corner colors and independent outline/spacing settings."""
 
 import argparse
 import base64
@@ -29,8 +29,10 @@ def main():
         for style in ([args.style] if args.style else CARD_TEMPLATES):
             data = MockDataGenerator.video_dynamic(user_index=0)
             data["pendant"] = ""
-            for border in (False, True):
+            for border, outline in ((False, True), (False, False), (True, True), (True, False)):
                 data["show_border"] = border
+                data["show_outline"] = outline
+                data["corner_background"] = "#000000"
                 width = (700 if style == "template_1" else 630) if border else (680 if style == "template_1" else 600)
                 page = browser.new_page(viewport={"width": width, "height": 1}, device_scale_factor=2)
                 page.set_content(Template(Path(get_template_path(style)).read_text(encoding="utf-8")).render(**data))
@@ -43,33 +45,39 @@ def main():
                             padding:b.paddingTop, background:b.backgroundColor};
                 }""")
                 assert state["width"] > 400 and state["height"] > 150, state
+                assert (state["border"] != "0px") is outline, (style, outline, state)
                 if border:
-                    assert state["x"] > 0 and (state["border"] != "0px" or state["outline"] != "0px"), (style, state)
+                    assert state["x"] > 0, (style, state)
                 else:
-                    assert state["x"] == 0 and state["y"] == 0 and state["border"] == "0px", (style, state)
-                    assert state["padding"] == "0px" and state["background"] == "rgba(0, 0, 0, 0)", (style, state)
+                    assert state["x"] == 0 and state["y"] == 0, (style, state)
+                    assert state["padding"] == "0px" and state["background"] == "rgb(0, 0, 0)", (style, state)
                     assert state["width"] == width, (style, state)
-                    screenshot = page.screenshot(full_page=True, omit_background=True)
+                    screenshot = page.screenshot(full_page=True)
                     with Image.open(io.BytesIO(screenshot)) as bitmap:
                         assert bitmap.width == width * 2, (style, bitmap.size)
                         assert abs(bitmap.height - state["height"] * 2) <= 2, (style, bitmap.size, state)
                         assert any(low < high for low, high in bitmap.convert("RGB").getextrema()), style
-                    if args.update_previews:
+                        assert bitmap.convert("RGB").getpixel((1, 1)) == (0, 0, 0), (style, "top-left corner")
+                        assert bitmap.convert("RGB").getpixel((bitmap.width - 2, 1)) == (0, 0, 0), (style, "top-right corner")
+                    jpeg = page.screenshot(full_page=True, type="jpeg", quality=95)
+                    with Image.open(io.BytesIO(jpeg)) as bitmap:
+                        assert max(bitmap.getpixel((1, 1))) < 10, (style, "JPEG corner color")
+                    if args.update_previews and outline:
                         name = names.get(style, "card_" + style)
                         (ROOT / "assets/preview" / (name + ".png")).write_bytes(screenshot)
-                print(f"PASS {style} frame={border}: {state['width']}x{state['height']}", flush=True)
+                print(f"PASS {style} frame={border} outline={outline}: {state['width']}x{state['height']}", flush=True)
                 page.close()
         if args.style:
             browser.close()
             return
         data.update(name="爱丽丝", avatar=avatar, type="LIVE_ON", title="周末直播：游戏与创作",
-                    text="订阅的 UP 主开播了！<br>分区：游戏 · 人气：8.6万", show_border=False,
+                    text="订阅的 UP 主开播了！<br>分区：游戏 · 人气：8.6万", show_border=False, show_outline=True,
                     url="https://live.bilibili.com/123456", qrcode=create_qrcode_sync("https://live.bilibili.com/123456"))
         page = browser.new_page(viewport={"width":600,"height":1}, device_scale_factor=2)
         page.set_content(Template(Path(get_template_path("bilibili")).read_text(encoding="utf-8")).render(**data))
         page.wait_for_function("Array.from(document.images).every(i => i.complete && i.naturalWidth > 0)", timeout=30000)
         if args.update_previews:
-            page.screenshot(full_page=True, omit_background=True, path=str(ROOT / "assets/preview/live_bilibili.png"))
+            page.screenshot(full_page=True, path=str(ROOT / "assets/preview/live_bilibili.png"))
         print("PASS live preview", flush=True)
         browser.close()
 

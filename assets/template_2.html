@@ -345,11 +345,12 @@
                 box-shadow: 0 2px 6px rgba(35, 173, 229, 0.15);
                 letter-spacing: 0;
             }
-        {% if show_border %}
-            .card { outline: 1px solid #ffd0df; }
-        {% else %}
-            body { padding: 0; background: transparent; min-height: 0; }
-            .card { margin: 0; border: none !important; }
+        {% if show_outline | default(true) %}
+            .card { border: 1px solid #ffd0df; box-sizing: border-box; }
+        {% endif %}
+        {% if not show_border %}
+            body { padding: 0; background: {{ corner_background | default('#000000', true) }}; min-height: 0; }
+            .card { margin: 0; box-shadow: none; }
         {% endif %}
 </style>
     </head>

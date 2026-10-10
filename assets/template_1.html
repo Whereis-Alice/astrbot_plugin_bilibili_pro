@@ -481,9 +481,10 @@
             background: linear-gradient(45deg, #e8f5e9, #f3e5f5);
         }
     {% if not show_border %}
-        body { padding: 0; background: transparent; min-height: 0; }
-        .dynamic-card { margin: 0; border: none !important; }
+        body { padding: 0; background: {{ corner_background | default('#000000', true) }}; min-height: 0; }
+        .dynamic-card { margin: 0; box-shadow: none; }
     {% endif %}
+    {% if not (show_outline | default(true)) %}.dynamic-card { border: none !important; }{% endif %}
 </style>
     </head>
 

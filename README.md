@@ -9,7 +9,7 @@
 为 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 打造的全能哔哩哔哩插件，内置 7 款精美卡片皮肤。
 
 ![AstrBot](https://img.shields.io/badge/AstrBot-%E2%89%A5%204.26.0-00a1d6?style=flat-square)
-![version](https://img.shields.io/badge/version-v1.7.2--pro.3-fb7299?style=flat-square)
+![version](https://img.shields.io/badge/version-v1.7.2--pro.4-fb7299?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-4c9a2a?style=flat-square)
 
 </div>
@@ -92,10 +92,14 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 | 配置项 | 默认值 | 说明 |
 | :--- | :--- | :--- |
 | `renderer_template` | `template_2` | 全局卡片皮肤，也可用 `/bili_card_style` 切换。 |
-| `card_border`（卡片外框） | 关闭 | 关闭时移除卡片外围留白、背景与描边，保留卡片圆角；开启时恢复带留白的外框效果。适用于全部 7 款皮肤。 |
+| `card_border`（卡片外围留白） | 关闭 | 关闭时截图紧贴卡片，不保留外围留白；开启时恢复皮肤的外围背景和留白。 |
+| `card_outline`（卡片描边） | 开启 | 保留皮肤原有描边，例如卡比皮肤的浅粉描边；与外围留白独立，可单独关闭。 |
+| `card_corner_background`（圆角外侧背景色） | `#000000` | 没有外围留白时，仅圆角外侧露出的角隙使用此颜色，默认黑色。支持六位十六进制颜色，例如 `#FFFFFF`（白色）；不会改变卡片内部颜色。 |
 | `rai`（图片推送） | 开启 | 关闭后以纯文本发送动态和直播通知，外观设置不再影响推送。 |
 
 订阅成功、视频查询与直播通知使用的默认头像为**爱丽丝**，默认显示名也是**爱丽丝**；UP 主动态卡片仍显示动态作者的头像和名称。已有自定义头像会继续使用，可在订阅管理页点击「恢复默认」切回爱丽丝头像。修改配置后保存并重载插件，使外观设置生效。
+
+默认外观为**无外围留白 + 保留描边 + 黑色角隙**，适用于全部 7 款皮肤。想恢复带粉色外围背景的卡比卡片，开启「卡片外围留白」即可。
 
 ## 📖 使用说明
 

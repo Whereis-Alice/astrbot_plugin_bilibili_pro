@@ -2,7 +2,7 @@ name: astrbot_plugin_bilibili_pro # 这是你的插件的唯一识别名。
 display_name: Bilibili Pro # 用于 Dashboard、插件页面侧边栏等展示。
 desc: 哔哩哔哩动态推送、视频/直播间信息、番剧推荐，并内置多款卡片皮肤的增强版（基于 Soulter & Flartiny 原版的社区 fork）
 help: 输入 /bili 查看完整指令帮助。
-version: v1.7.2-pro.3 # 插件的版本号
+version: v1.7.2-pro.4 # 插件的版本号
 author: "Whereis-Alice (fork) · 原作者 Soulter & Flartiny" # 作者
 repo: https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro # 插件的仓库地址
 astrbot_version: ">=4.26.0"

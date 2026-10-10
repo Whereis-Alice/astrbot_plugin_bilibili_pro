@@ -42,11 +42,12 @@
     .grid-1 img { max-height:360px; object-fit:contain; aspect-ratio:auto; background:transparent; }
     .grid-2,.grid-4 { grid-template-columns:repeat(2,1fr); }
     .grid-3,.grid-5,.grid-6,.grid-7,.grid-8,.grid-9 { grid-template-columns:repeat(3,1fr); }
-{% if show_border %}
-.card { outline: 1px solid #c7e5ef; }
-{% else %}
-body { padding: 0; background: transparent; min-height: 0; }
-.card { margin: 0; border: none !important; }
+{% if show_outline | default(true) %}
+.card { border: 1px solid #c7e5ef; }
+{% endif %}
+{% if not show_border %}
+body { padding: 0; background: {{ corner_background | default('#000000', true) }}; min-height: 0; }
+.card { margin: 0; box-shadow: none; }
 {% endif %}
 </style>
 </head>
