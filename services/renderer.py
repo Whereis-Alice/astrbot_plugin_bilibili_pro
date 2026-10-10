@@ -82,6 +82,12 @@ class Renderer:
         except Exception:
             context["show_border"] = False
 
+        if not context["show_border"]:
+            target_style = style or self.style
+            if target_style not in self._templates:
+                target_style = DEFAULT_TEMPLATE
+            options["viewport_width"] = 680 if target_style == "template_1" else 600
+
         for attempt in range(1, MAX_ATTEMPTS + 1):
             render_output = None
             try:

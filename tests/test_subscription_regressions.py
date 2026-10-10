@@ -5,9 +5,12 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from astrbot_plugin_bilibili_pro.core.models import SubscriptionRecord
+from astrbot_plugin_bilibili_pro.core.models import RenderPayload, SubscriptionRecord
+from astrbot_plugin_bilibili_pro.core.constant import CARD_TEMPLATES
 from astrbot_plugin_bilibili_pro.main import Main
 from astrbot_plugin_bilibili_pro.services.listener import DynamicListener
 from astrbot_plugin_bilibili_pro.services.dispatcher import SubscriptionNotificationDispatcher
@@ -168,3 +171,18 @@ def test_failed_live_notification_retries_before_acknowledging_transition():
         assert context.send_message.await_count == 4
 
     asyncio.run(check())
+
+
+@pytest.mark.parametrize("style", list(CARD_TEMPLATES) + ["unknown"])
+@pytest.mark.parametrize("frame", [False, True])
+def test_renderer_uses_card_width_when_frame_is_disabled(style, frame):
+    output = str(Path(__file__).resolve().parents[1] / "assets" / "Astrbot.png")
+    star = SimpleNamespace(cfg={"card_border": frame}, html_render=AsyncMock(return_value=output))
+    renderer = Renderer(star, rai=True, style=style)
+    assert asyncio.run(renderer.render_dynamic(RenderPayload(name="爱丽丝"))) == output
+    call = star.html_render.await_args.kwargs
+    assert call["data"]["show_border"] is frame
+    if frame:
+        assert "viewport_width" not in call["options"]
+    else:
+        assert call["options"]["viewport_width"] == (680 if style == "template_1" else 600)

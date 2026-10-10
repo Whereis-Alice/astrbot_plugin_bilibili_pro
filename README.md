@@ -9,7 +9,7 @@
 为 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 打造的全能哔哩哔哩插件，内置 7 款精美卡片皮肤。
 
 ![AstrBot](https://img.shields.io/badge/AstrBot-%E2%89%A5%204.26.0-00a1d6?style=flat-square)
-![version](https://img.shields.io/badge/version-v1.7.2--pro.2-fb7299?style=flat-square)
+![version](https://img.shields.io/badge/version-v1.7.2--pro.3-fb7299?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-4c9a2a?style=flat-square)
 
 </div>
@@ -159,7 +159,7 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 | `template_2` | B站粉风格 | **默认皮肤**，B 站粉主题 |
 | `simple` | 简约风格 | 简洁现代 |
 | `bilibili` | 哔哩哔哩风格 | 仿 B 站蓝粉渐变，顶部品牌栏 |
-| `kirby` | 星之卡比风格 | 粉彩星星、圆润可爱 |
+| `kirby` | 星之卡比风格 | 卡比头像、粉彩星星、圆润可爱 |
 | `dark` | 暗夜霓虹 | 深色霓虹渐变，适合夜间 |
 | `sakura` | 樱花 | 柔和樱花粉，清新治愈 |
 
