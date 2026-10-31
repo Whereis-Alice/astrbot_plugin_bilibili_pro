@@ -9,7 +9,7 @@
 为 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 打造的全能哔哩哔哩插件，内置 7 款精美卡片皮肤。
 
 ![AstrBot](https://img.shields.io/badge/AstrBot-%E2%89%A5%204.26.0-00a1d6?style=flat-square)
-![version](https://img.shields.io/badge/version-v1.7.2--pro.5-fb7299?style=flat-square)
+![version](https://img.shields.io/badge/version-v1.7.2--pro.6-fb7299?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-4c9a2a?style=flat-square)
 
 </div>
@@ -114,6 +114,7 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 | 指令 | 参数 | 说明 | 别名 |
 | :--- | :--- | :--- | :--- |
 | `bili` | （无） | 查看完整指令帮助。 | （无） |
+| `bili_link` | （无，需引用消息） | 将引用的 B 站小程序分享卡片或分享链接转为网页直链。 | `小程序转链`、`转直链` |
 | `bili_sub` | `<UID> [过滤器...]` | 订阅指定 UP 主的动态与开播提醒，可追加多个过滤器（空格分隔）。 | `订阅动态` |
 | `bili_sub_list` | （无） | 显示当前会话的所有订阅。 | `订阅列表` |
 | `bili_sub_del` | `<UID>` | 删除当前会话对指定 UP 主的订阅。 | `订阅删除` |
@@ -126,6 +127,20 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 | `bili_global_list` | （无） | **[管理员]** 查看所有会话的订阅情况。 | `全局列表` |
 
 > 另外，直接发送 `BV` 号 / `b23.tv` 短链 / 视频链接，或 B 站 QQ 小程序卡片，插件会自动解析，无需指令。
+
+### 引用小程序转直链
+
+在 QQ 中找到一条 B 站小程序分享卡片，选择「回复 / 引用」，然后发送：
+
+```text
+/bili_link
+```
+
+也可以发送 `/小程序转链` 或 `/转直链`。机器人会以文字返回标题和可点击、可复制的网页链接，适合处理之前发过的分享卡片。引用包含 B 站视频、动态、番剧或直播链接的普通文字消息也可以使用。
+
+该指令所有用户均可用，不需要 B 站登录。关闭 `enable_parse_miniapp`（自动解析 QQ 小程序）后，手动指令仍可使用。`b23.tv` 短链会尝试展开，并保留分 P、播放位置等内容参数；如果短链暂时无法展开，会保留原分享链接并给出提示。
+
+引用小程序主要适用于 QQ 的 OneBot v11 接入（如 NapCat、Lagrange）。原消息已撤回或 QQ 客户端无法取回时，请重新分享后再引用；其他平台需要向插件提供完整的引用消息内容。
 
 ### 过滤器（订阅时追加，命中则不推送）
 

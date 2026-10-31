@@ -62,7 +62,7 @@
     },
     "enable_parse_miniapp": {
       "description": "Parse QQ Mini-app",
-      "hint": "When enabled, automatically parse Bilibili QQ mini-app cards in messages and extract direct links."
+      "hint": "Automatically extract direct links from Bilibili QQ mini-app cards. When disabled, you can still quote a share message and use /bili_link manually."
     },
     "enable_parse_BV": {
       "description": "Parse Bilibili Video Links",

@@ -62,7 +62,7 @@
     },
     "enable_parse_miniapp": {
       "description": "解析 QQ 小程序",
-      "hint": "启用后自动解析消息中的 Bilibili QQ 小程序卡片，提取直链。"
+      "hint": "启用后自动解析消息中的 Bilibili QQ 小程序卡片，提取直链。关闭后，仍可引用分享消息并发送 /bili_link 手动提取直链。"
     },
     "enable_parse_BV": {
       "description": "解析 B 站视频链接",

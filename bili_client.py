@@ -1,9 +1,13 @@
+import asyncio
 from typing import Any, Dict, Optional, Tuple
+from urllib.parse import urljoin
 
 import aiohttp
 from astrbot.api import logger
 from bilibili_api import Credential, hot, request_settings, search, user, video
 from bilibili_api.utils.network import Api
+
+from .core.share_link import is_b23_url, normalize_bilibili_url
 
 
 class BiliClient:
@@ -232,21 +236,35 @@ class BiliClient:
 
     async def b23_to_bv(self, url: str) -> Optional[str]:
         """
-        b23短链转换为原始链接
+        展开 B 站短链，保留内容参数；无法展开时返回 None。
         """
+        current = normalize_bilibili_url(url)
+        if not current:
+            return None
+        if not is_b23_url(current):
+            return current
         headers: Dict[str, str] = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
-        async with aiohttp.ClientSession() as session:
-            try:
-                async with session.get(
-                    url=url, headers=headers, allow_redirects=False, timeout=10
-                ) as response:
-                    if 300 <= response.status < 400:
-                        location_url: str | None = response.headers.get("Location")
-                        if location_url:
-                            base_url: str = location_url.split("?", 1)[0]
-                            return base_url
-            except Exception as e:
-                logger.error(f"解析b23链接失败 (URL: {url}): {e}")
-                return url
+        try:
+            async with asyncio.timeout(10), aiohttp.ClientSession(
+                timeout=aiohttp.ClientTimeout(total=10)
+            ) as session:
+                for _ in range(3):
+                    async with session.get(
+                        url=current, headers=headers, allow_redirects=False, proxy=self.proxy or None
+                    ) as response:
+                        if not 300 <= response.status < 400:
+                            return None
+                        location = response.headers.get("Location")
+                        destination = normalize_bilibili_url(urljoin(current, location)) if location else None
+                        if not destination:
+                            return None
+                        if not is_b23_url(destination):
+                            return destination
+                        if destination == current:
+                            return None
+                        current = destination
+        except Exception as e:
+            logger.warning(f"解析 B 站短链失败: {type(e).__name__}")
+        return None

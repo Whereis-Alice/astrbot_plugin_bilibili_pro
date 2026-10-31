@@ -76,7 +76,7 @@
     "enable_parse_miniapp": {
         "description": "enable_parse_miniapp",
         "type": "bool",
-        "hint": "是否解析小程序",
+        "hint": "是否自动解析 B 站 QQ 小程序卡片。关闭后，仍可引用分享消息并发送 /bili_link 手动提取直链。",
         "default": true
     },
     "enable_parse_BV": {

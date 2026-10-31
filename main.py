@@ -1,5 +1,4 @@
 import asyncio
-import json
 import re
 import time
 from pathlib import Path
@@ -46,6 +45,7 @@ from .core.credential_lifecycle import (
 )
 from .core.data_manager import DataManager
 from .core.models import RenderPayload, SubscriptionRecord
+from .core.share_link import extract_shared_links
 from .core.utils import (
     create_qrcode,
     image_to_base64,
@@ -56,6 +56,11 @@ from .services.dispatcher import SubscriptionNotificationDispatcher
 from .services.listener import DynamicListener
 from .services.logo_service import LogoService
 from .services.renderer import Renderer
+from .services.share_link_service import (
+    QuotedMessageError,
+    format_shared_links,
+    read_quoted_links,
+)
 from .services.subscription_page_service import SubscriptionPageService
 from .services.subscription_service import SubscriptionService
 from .tools.bgm_daily import BgmDailyTool
@@ -64,7 +69,7 @@ from .tools.bili_hot_video import BiliSearchHotVideosTool
 from .tools.bili_user_dynamics import BiliUserDynamicsTool
 
 
-@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.5", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
+@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.6", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
 class Main(Star):
     def __init__(self, context: Context, config: AstrBotConfig) -> None:
         super().__init__(context)
@@ -558,6 +563,7 @@ class Main(Star):
 【视频 / 小程序】
 · 直接发送 BV 号 / b23.tv 短链 / 视频链接：自动解析视频卡片
 · 发送 B 站 QQ 小程序卡片：自动提取直链
+· 引用 B 站小程序消息后发送 /bili_link（/小程序转链 或 /转直链）：提取直链
 
 【卡片皮肤 · 管理员】
 · /bili_card_style  或  /卡片样式：查看全部皮肤
@@ -997,46 +1003,32 @@ class Main(Star):
                 ret += f"  - {uid}\n"
         return MessageEventResult().message(ret)
 
+    @command("bili_link", alias={"小程序转链", "转直链"})
+    async def quoted_miniapp_link(self, event: AstrMessageEvent) -> MessageEventResult:
+        """引用 B 站小程序分享消息，提取可点击、可复制的网页直链。"""
+        try:
+            links = await read_quoted_links(event)
+        except QuotedMessageError as e:
+            return MessageEventResult().message(str(e)).use_t2i(False)
+        if not links:
+            return MessageEventResult().message(
+                "引用消息中没有找到 B 站分享链接，请引用原始小程序卡片或包含 B 站链接的消息。"
+            ).use_t2i(False)
+        result = await format_shared_links(links, self.bili_client)
+        return MessageEventResult().message(result).use_t2i(False)
+
     @event_message_type(EventMessageType.ALL)
     async def parse_miniapp(self, event: AstrMessageEvent):
-        if self.enable_parse_miniapp:
-            for msg_element in event.message_obj.message:
-                if (
-                    hasattr(msg_element, "type")
-                    and msg_element.type == "Json"
-                    and hasattr(msg_element, "data")
-                ):
-                    json_string = msg_element.data
-
-                    try:
-                        if isinstance(json_string, dict):
-                            parsed_data = json_string
-                        else:
-                            parsed_data = json.loads(json_string)
-                        meta = parsed_data.get("meta", {})
-                        detail_1 = meta.get("detail_1", {})
-                        title = detail_1.get("title")
-                        qqdocurl = detail_1.get("qqdocurl")
-                        desc = detail_1.get("desc")
-
-                        if title == "哔哩哔哩" and qqdocurl:
-                            if "https://b23.tv" in qqdocurl:
-                                qqdocurl = await self.bili_client.b23_to_bv(qqdocurl)
-                            ret = f"标题: {desc}\n链接: {qqdocurl}"
-                            await event.send(MessageChain().message(ret))
-                        news = meta.get("news", {})
-                        tag = news.get("tag", "")
-                        jumpurl = news.get("jumpUrl", "")
-                        title = news.get("title", "")
-                        if tag == "哔哩哔哩" and jumpurl:
-                            if "https://b23.tv" in jumpurl:
-                                jumpurl = await self.bili_client.b23_to_bv(jumpurl)
-                            ret = f"标题: {title}\n链接: {jumpurl}"
-                            await event.send(MessageChain().message(ret))
-                    except json.JSONDecodeError:
-                        logger.error(f"Failed to decode JSON string: {json_string}")
-                    except Exception as e:
-                        logger.error(f"An error occurred during JSON processing: {e}")
+        if not self.enable_parse_miniapp:
+            return
+        cards = [
+            part for part in event.message_obj.message
+            if getattr(part, "type", None) == "Json"
+        ]
+        links = extract_shared_links(cards)
+        if links:
+            result = await format_shared_links(links, self.bili_client)
+            await event.send(MessageEventResult().message(result).use_t2i(False))
 
     @command("bili_sub_test", alias={"订阅测试"})
     async def sub_test(self, event: AstrMessageEvent, uid: str):
