@@ -12,7 +12,8 @@ _HOSTS = {"b23.tv", "www.b23.tv", "bilibili.com", "www.bilibili.com",
           "m.bilibili.com", "t.bilibili.com", "live.bilibili.com", "space.bilibili.com"}
 _TRACKING_PARAMS = {"spm_id_from", "share_source", "share_medium", "share_plat",
                     "share_session_id", "share_tag", "share_times", "timestamp",
-                    "unique_k", "vd_source", "bbid", "broadcast_type", "is_story_h5"}
+                    "unique_k", "vd_source", "bbid", "broadcast_type", "is_story_h5",
+                    "buvid", "from_spmid", "mid", "plat_id", "share_from", "spmid", "up_id"}
 _URL_RE = re.compile(
     r"(?<![\w.@/-])(?:https?://|//)?(?:[a-z]+\.)?(?:bilibili\.com|b23\.tv)"
     r"/[^\s<>\"\[\]，。！？；（）]+", re.IGNORECASE
@@ -51,7 +52,7 @@ def normalize_bilibili_url(value: Any) -> str | None:
         if host in {"bilibili.com", "m.bilibili.com"} and parts.path.startswith("/video/"):
             host = "www.bilibili.com"
         query = urlencode([(key, val) for key, val in parse_qsl(parts.query, keep_blank_values=True)
-                           if key.lower() not in _TRACKING_PARAMS])
+                           if key.lower() not in _TRACKING_PARAMS and not (key == "p" and val == "1")])
         return urlunsplit(("https", host, parts.path, query, parts.fragment))
     except ValueError:
         return None
@@ -86,8 +87,12 @@ def extract_shared_links(message: Any) -> list[SharedLink]:
             if not isinstance(section, dict):
                 continue
             title = (section.get("desc") or section.get("title") or "") if key != "news" else section.get("title", "")
-            for field in ("qqdocurl", "jumpUrl", "jumpurl", "url"):
-                add(section.get(field), title)
+            candidates = [url for field in ("qqdocurl", "jumpUrl", "jumpurl", "url")
+                          if (url := normalize_bilibili_url(section.get(field)))]
+            if candidates:
+                # A card may include both a canonical page URL and its short
+                # share URL. Use the short one without expanding it again.
+                add(next((url for url in candidates if is_b23_url(url)), candidates[0]), title)
 
     def text(value: Any) -> None:
         if not isinstance(value, str) or len(value) > 262144:

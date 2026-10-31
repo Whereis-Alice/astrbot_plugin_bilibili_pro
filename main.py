@@ -69,7 +69,7 @@ from .tools.bili_hot_video import BiliSearchHotVideosTool
 from .tools.bili_user_dynamics import BiliUserDynamicsTool
 
 
-@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.6", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
+@register("astrbot_plugin_bilibili_pro", "Whereis-Alice (fork) · Soulter & Flartiny", "哔哩哔哩动态推送、视频/直播查询、番剧推荐，多卡片皮肤增强版", "v1.7.2-pro.7", "https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro")
 class Main(Star):
     def __init__(self, context: Context, config: AstrBotConfig) -> None:
         super().__init__(context)
@@ -1014,7 +1014,7 @@ class Main(Star):
             return MessageEventResult().message(
                 "引用消息中没有找到 B 站分享链接，请引用原始小程序卡片或包含 B 站链接的消息。"
             ).use_t2i(False)
-        result = await format_shared_links(links, self.bili_client)
+        result = format_shared_links(links)
         return MessageEventResult().message(result).use_t2i(False)
 
     @event_message_type(EventMessageType.ALL)
@@ -1027,7 +1027,7 @@ class Main(Star):
         ]
         links = extract_shared_links(cards)
         if links:
-            result = await format_shared_links(links, self.bili_client)
+            result = format_shared_links(links)
             await event.send(MessageEventResult().message(result).use_t2i(False))
 
     @command("bili_sub_test", alias={"订阅测试"})

@@ -1,10 +1,9 @@
 import asyncio
-from typing import Any
 
 from astrbot.api.event import AstrMessageEvent
 from astrbot.api.message_components import Reply
 
-from ..core.share_link import SharedLink, extract_shared_links, is_b23_url, normalize_bilibili_url
+from ..core.share_link import SharedLink, extract_shared_links, normalize_bilibili_url
 
 
 class QuotedMessageError(Exception):
@@ -50,28 +49,17 @@ async def read_quoted_links(event: AstrMessageEvent) -> list[SharedLink]:
     return extract_shared_links(result.get("message") or result.get("raw_message"))
 
 
-async def format_shared_links(links: list[SharedLink], bili_client: Any) -> str:
-    """Resolve short links and emit copyable text without image rendering."""
+def format_shared_links(links: list[SharedLink]) -> str:
+    """Emit title + clickable URL, keeping the original b23 share link short."""
     lines = []
     seen = set()
     for link in links:
-        url = link.url
-        failed = False
-        if is_b23_url(url):
-            try:
-                resolved = normalize_bilibili_url(await bili_client.b23_to_bv(url))
-            except Exception:
-                resolved = None
-            if resolved and not is_b23_url(resolved):
-                url = resolved
-            else:
-                failed = True
-        if url in seen:
+        url = normalize_bilibili_url(link.url)
+        if not url or url in seen:
             continue
         seen.add(url)
-        block = f"标题: {link.title}\n" if link.title else ""
+        title = " ".join(link.title.split())
+        block = f"{title}\n" if title else ""
         block += f"链接: {url}"
-        if failed:
-            block += "\n短链暂时无法展开，已保留可点击的原分享链接。"
         lines.append(block)
     return "\n\n".join(lines)

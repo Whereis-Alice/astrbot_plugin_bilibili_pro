@@ -9,7 +9,7 @@
 为 [AstrBot](https://github.com/AstrBotDevs/AstrBot) 打造的全能哔哩哔哩插件，内置 7 款精美卡片皮肤。
 
 ![AstrBot](https://img.shields.io/badge/AstrBot-%E2%89%A5%204.26.0-00a1d6?style=flat-square)
-![version](https://img.shields.io/badge/version-v1.7.2--pro.6-fb7299?style=flat-square)
+![version](https://img.shields.io/badge/version-v1.7.2--pro.7-fb7299?style=flat-square)
 ![license](https://img.shields.io/badge/license-MIT-4c9a2a?style=flat-square)
 
 </div>
@@ -138,7 +138,16 @@ plugin i https://github.com/Whereis-Alice/astrbot_plugin_bilibili_pro
 
 也可以发送 `/小程序转链` 或 `/转直链`。机器人会以文字返回标题和可点击、可复制的网页链接，适合处理之前发过的分享卡片。引用包含 B 站视频、动态、番剧或直播链接的普通文字消息也可以使用。
 
-该指令所有用户均可用，不需要 B 站登录。关闭 `enable_parse_miniapp`（自动解析 QQ 小程序）后，手动指令仍可使用。`b23.tv` 短链会尝试展开，并保留分 P、播放位置等内容参数；如果短链暂时无法展开，会保留原分享链接并给出提示。
+回复采用简洁格式，标题单独一行，下一行显示链接：
+
+```text
+视频标题
+链接: https://b23.tv/7NrE40R
+```
+
+优先保留卡片中的原始 `b23.tv` 短链，不展开成带一长串参数的地址。卡片只有长链时，会清理分享追踪参数与默认的 `p=1`，保留分 P、播放位置等内容参数。自动小程序解析也使用这一格式。
+
+该指令所有用户均可用，不需要 B 站登录。关闭 `enable_parse_miniapp`（自动解析 QQ 小程序）后，手动指令仍可使用。
 
 引用小程序主要适用于 QQ 的 OneBot v11 接入（如 NapCat、Lagrange）。原消息已撤回或 QQ 客户端无法取回时，请重新分享后再引用；其他平台需要向插件提供完整的引用消息内容。
 

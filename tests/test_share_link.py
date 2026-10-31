@@ -140,7 +140,8 @@ def test_manual_command_works_when_automatic_parsing_disabled_and_is_plain_text(
                              bili_client=SimpleNamespace(b23_to_bv=AsyncMock(return_value=VIDEO)))
     event = quoted_event([Json(data=miniapp())])
     result = asyncio.run(Main.quoted_miniapp_link(plugin, event))
-    assert result.get_plain_text() == "标题: 视频标题\n链接: " + VIDEO
+    assert result.get_plain_text() == "视频标题\n链接: " + SHORT
+    plugin.bili_client.b23_to_bv.assert_not_awaited()
     assert result.use_t2i_ is False
     assert asyncio.run(Main.parse_miniapp(plugin, event)) is None
     event.send.assert_not_awaited()
@@ -155,8 +156,8 @@ def test_auto_parser_uses_same_conversion_and_does_not_parse_reply_again():
     event.message_obj.message = [Json(data=miniapp()), Json(data=miniapp())]
     asyncio.run(Main.parse_miniapp(plugin, event))
     event.send.assert_awaited_once()
-    assert event.send.await_args.args[0].get_plain_text().endswith(VIDEO)
-    plugin.bili_client.b23_to_bv.assert_awaited_once()
+    assert event.send.await_args.args[0].get_plain_text() == "视频标题\n链接: " + SHORT
+    plugin.bili_client.b23_to_bv.assert_not_awaited()
 
 
 @pytest.mark.parametrize("command", ["bili_link", "小程序转链", "转直链"])
@@ -172,11 +173,28 @@ def test_astrbot_registered_command_and_aliases_accept_no_arguments(command):
     assert command_filter.validate_and_convert_params([], command_filter.handler_params) == {}
 
 
-@pytest.mark.parametrize("resolved", [None, SHORT, "https://evil.test/abc"])
-def test_unresolved_short_link_is_retained_with_explanation(resolved):
-    client = SimpleNamespace(b23_to_bv=AsyncMock(return_value=resolved))
-    result = asyncio.run(format_shared_links([SharedLink(SHORT, "标题")], client))
-    assert SHORT in result and "暂时无法展开" in result
+def test_share_response_matches_requested_two_line_format():
+    title = "【4K Hi-Res 黑胶试听】草原啊，草原 Полюшко-поле 亚历山大红旗歌舞团典藏"
+    assert format_shared_links([SharedLink("https://b23.tv/7NrE40R", title)]) == (
+        title + "\n链接: https://b23.tv/7NrE40R"
+    )
+
+
+def test_card_prefers_short_url_when_it_also_contains_long_url():
+    card = miniapp(VIDEO + "?buvid=abc&from_spmid=search&mid=xyz&p=1&plat_id=116&share_from=ugc&spmid=player&up_id=123")
+    card["meta"]["detail_1"]["url"] = "https://b23.tv/7NrE40R"
+    assert extract_shared_links(card) == [SharedLink("https://b23.tv/7NrE40R", "视频标题")]
+
+
+def test_long_link_only_removes_reported_tracking_and_default_page():
+    long_url = (VIDEO + "?buvid=abc&from_spmid=search.search-result.0.0&mid=J5M%2BLX&p=1"
+                "&plat_id=116&share_from=ugc&spmid=player%C3%97tamp%3D1793457950&up_id=3268763")
+    assert format_shared_links([SharedLink(long_url, "视频标题")]) == "视频标题\n链接: " + VIDEO
+    assert normalize_bilibili_url(long_url.replace("p=1", "p=2") + "&t=42") == VIDEO + "?p=2&t=42"
+
+
+def test_share_response_without_title_or_with_duplicate_urls_is_compact():
+    assert format_shared_links([SharedLink(SHORT), SharedLink(SHORT)]) == "链接: " + SHORT
 
 
 class FakeResponse:
